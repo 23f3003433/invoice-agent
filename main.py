@@ -707,6 +707,7 @@ async def process_continuation(principal, message, task):
     return json_response(response)
 
 
+@app.post("/invoice-agent/message:send")
 @app.post("/message:send")
 async def send_message(request: Request):
     principal, auth_error = authenticate(request)
@@ -789,6 +790,7 @@ async def send_message(request: Request):
         finally:
             _message_locks.pop(lock_key, None)
 
+@app.get("/invoice-agent/tasks/{task_id}")
 @app.get("/tasks/{task_id}")
 def read_task(task_id: str, request: Request):
     principal, auth_error = authenticate(request)
@@ -806,6 +808,7 @@ def read_task(task_id: str, request: Request):
 
     return json_response(task)
 
+@app.get("/invoice-agent/tasks")
 @app.get("/tasks")
 def read_tasks(request: Request):
     principal, auth_error = authenticate(request)
@@ -819,7 +822,7 @@ def read_tasks(request: Request):
     return json_response({"tasks": list_tasks(principal)})
 
 
-
+@app.post("/invoice-agent/tasks/{task_id}:cancel")
 @app.post("/tasks/{task_id}:cancel")
 async def cancel_task(task_id: str, request: Request):
     principal, auth_error = authenticate(request)
