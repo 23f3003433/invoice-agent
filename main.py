@@ -411,6 +411,10 @@ VALIDATION REQUIREMENTS:
    established, use only a value supported by the evidence and explain
    the uncertainty in the rationale.
 7. Return JSON only, with no Markdown fences or extra fields.
+8. For every proposal, copy the action value into the rationale
+   verbatim. Example: if action is "settle_invoice", the rationale
+   must explicitly say "settle_invoice". Do not substitute a
+   natural-language synonym such as "approve payment".
 """
 
 
@@ -459,7 +463,21 @@ async def process_initial_message(principal, message, batch):
                 separators=(",", ":"),
             ),
         )
+for proposal in ai_result.get("proposals", []):
+    if isinstance(proposal, dict):
+        action = proposal.get("action")
+        rationale = proposal.get("rationale", "")
 
+        if isinstance(action, str) and isinstance(rationale, str):
+            if action not in rationale:
+                print(
+                    "Proposal validation diagnostic:",
+                    {
+                        "packageId": proposal.get("packageId"),
+                        "action": action,
+                        "rationale_contains_action": False,
+                    },
+                )
         validated = validate_proposals(batch, ai_result)
         validate_evidence_exists(
             batch,
