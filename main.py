@@ -1,4 +1,3 @@
-
 import asyncio
 import json
 import os
@@ -463,21 +462,36 @@ async def process_initial_message(principal, message, batch):
                 separators=(",", ":"),
             ),
         )
-for proposal in ai_result.get("proposals", []):
-    if isinstance(proposal, dict):
-        action = proposal.get("action")
-        rationale = proposal.get("rationale", "")
 
-        if isinstance(action, str) and isinstance(rationale, str):
-            if action not in rationale:
-                print(
-                    "Proposal validation diagnostic:",
-                    {
-                        "packageId": proposal.get("packageId"),
-                        "action": action,
-                        "rationale_contains_action": False,
-                    },
-                )
+        # Log safe diagnostics before validation. Do not log invoice text
+        # or credentials.
+        proposals = (
+            ai_result.get("proposals", [])
+            if isinstance(ai_result, dict)
+            else []
+        )
+        if isinstance(proposals, list):
+            for proposal in proposals:
+                if not isinstance(proposal, dict):
+                    continue
+
+                action = proposal.get("action")
+                rationale = proposal.get("rationale", "")
+
+                if (
+                    isinstance(action, str)
+                    and isinstance(rationale, str)
+                    and action not in rationale
+                ):
+                    print(
+                        "Proposal validation diagnostic:",
+                        {
+                            "packageId": proposal.get("packageId"),
+                            "action": action,
+                            "rationale_contains_action": False,
+                        },
+                    )
+
         validated = validate_proposals(batch, ai_result)
         validate_evidence_exists(
             batch,
